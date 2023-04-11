@@ -65,7 +65,20 @@ impl FieldElement {
         FieldElement { value: value % P }
     }
 
-
+    // pow computes the exponentiation of a FieldElement by using the binary exponentiation algorithm
+    pub fn pow(&self, exp: u64) -> FieldElement {
+        let mut result = FieldElement::new(1);
+        let mut base = self.value;
+        let mut exp = exp;
+        while exp > 0 {
+            if exp % 2 == 1 {
+                result = result * FieldElement::new(base);
+            }
+            exp = exp >> 1;
+            base = (base * base) % P;
+        }
+        result
+    }
     
 
     // inv computes the multiplicative inverse of a FieldElement by using the extended Euclidean algorithm
@@ -194,6 +207,13 @@ mod tests {
         let a = FieldElement::new(42);
         let inv = a.inv();
         assert_eq!(a*inv, FieldElement::new(1));
+    }
+
+    #[test]
+    fn test_pow() {
+        let a = FieldElement::new(2);
+        let b = 3 as u64;
+        assert_eq!(a.pow(b), FieldElement::new(8));
     }
 
     #[test]

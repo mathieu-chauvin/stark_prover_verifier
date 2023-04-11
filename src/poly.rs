@@ -1,5 +1,7 @@
 // implement polynomials using the FieldElement type
 
+use crate::field::FieldElement;
+
 // Poly is a polynomial of degree n
 #[derive(Copy, Clone)]
 pub struct Poly {
@@ -30,7 +32,7 @@ impl Poly {
     fn add(&self, other: Poly) -> Poly {
         let mut result = [FieldElement::new(0); 256];
         for i in 0..256 {
-            result[i] = self.coeffs[i].add(other.coeffs[i]);
+            result[i] = self.coeffs[i] + other.coeffs[i];
         }
         Poly::new(result)
     }
@@ -38,11 +40,50 @@ impl Poly {
     fn sub(&self, other: Poly) -> Poly {
         let mut result = [FieldElement::new(0); 256];
         for i in 0..256 {
-            result[i] = self.coeffs[i].sub(other.coeffs[i]);
+            result[i] = self.coeffs[i]- other.coeffs[i];
         }
         Poly::new(result)
     }
 
+    fn eval(&self, x: FieldElement) -> FieldElement {
+        let mut result = FieldElement::new(0);
+        for i in 0..256 {
+            result = result+(self.coeffs[i]*x.pow(i as u64));
+        }
+        result
+    }
+
     //interpolation
     
+}
+
+//tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        let a = Poly::new([FieldElement::new(1);256]);
+        let b = Poly::new([FieldElement::new(2); 256]);
+        let c = a.add(b);
+        assert_eq!(c.coeffs[0], FieldElement::new(3));
+    }
+
+    #[test]
+    fn test_sub() {
+        let a = Poly::new([FieldElement::new(1);256]);
+        let b = Poly::new([FieldElement::new(2); 256]);
+        let c = a.sub(b);
+        assert_eq!(c.coeffs[0], FieldElement::new(0xffffffff00000000));
+    }
+
+    #[test]
+    fn test_eval() {
+        let mut a = Poly::new([FieldElement::new(0);256]);
+        a.coeffs[0] = FieldElement::new(2);
+        a.coeffs[1] = FieldElement::new(1);
+
+        assert_eq!(a.eval(FieldElement::new(1)), FieldElement::new(3));
+    }
 }
