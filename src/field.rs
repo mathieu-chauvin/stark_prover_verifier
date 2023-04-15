@@ -21,7 +21,7 @@ use std::hash::{Hash, Hasher};
 
 
 // declare a constant for p
-const P: u64 = 0xffffffff00000001;
+pub const P: u64 = 0xffffffff00000001;
 
 #[derive(Copy, Clone, Debug)]
 pub struct FieldElement {
@@ -38,7 +38,7 @@ impl Add<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn add(self, other: FieldElement) -> FieldElement {
-        FieldElement::new(self.value + other.value)
+        FieldElement::new(((self.value as u128 + other.value as u128)%(P as u128)) as u64)
     }
 }
 
