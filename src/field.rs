@@ -28,7 +28,7 @@ pub struct FieldElement {
     value: u64,
 }
 
-fn nth_root_of_unity(n: u64) -> FieldElement {
+pub fn nth_root_of_unity(n: u64) -> FieldElement {
     FieldElement::new(7).pow((P - 1) / n)
 }
 
@@ -50,7 +50,7 @@ impl Sub<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn sub(self, other: FieldElement) -> FieldElement {
-        FieldElement::new(self.value + P - other.value)
+        FieldElement::new(((self.value as u128) + (P as u128) - (other.value as u128)) as u64)
     }
 }
 

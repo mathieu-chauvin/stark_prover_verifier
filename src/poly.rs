@@ -2,6 +2,7 @@
 
 use crate::field::FieldElement;
 use crate::field::P;
+use crate::field::nth_root_of_unity;
 
 // implement a polynomial type
 // enum 
@@ -119,6 +120,47 @@ impl Poly {
     // fast fourier transform
     // https://en.wikipedia.org/wiki/Fast_Fourier_transform
     
+    fn fft(vals: &[FieldElement], root_of_unity: &FieldElement) -> Vec<FieldElement> {
+        let n = vals.len();
+        if n == 1 {
+            return vals.to_vec();
+        }
+
+        let root_of_unity_sqr = (*root_of_unity)*(*root_of_unity);
+        let l = Self::fft(&vals.iter().step_by(2).map(|&x| x).collect::<Vec<FieldElement>>(), &root_of_unity_sqr);
+        let r = Self::fft(&vals.iter().skip(1).step_by(2).map(|&x| x).collect::<Vec<FieldElement>>(), &root_of_unity_sqr);
+
+        let mut o = vec![FieldElement::new(0); n];
+        let mut power_of_root_of_unity = FieldElement::new(1);
+            
+        for i in 0..n/2 {
+            let y_times_root = r[i]*(power_of_root_of_unity);
+            o[i] = l[i]+(y_times_root);
+            o[i+n/2] = l[i]-(y_times_root);
+            power_of_root_of_unity = power_of_root_of_unity*(*root_of_unity);
+        }
+        o
+    }
+
+    // Inverse FFT function
+    fn inv_fft(vals: &[FieldElement], root_of_unity: &FieldElement) -> Vec<FieldElement> {
+        let n = vals.len();
+
+        // Inverse FFT
+        let invlen = FieldElement::new(vals.len() as u64).inv();
+        print!("invlen: {:?}" , invlen);
+        let poly = Self::fft(&vals, &root_of_unity);
+        print!("poly: {:?}" , poly);
+        // for each element of poly, multiply by invlen
+        let inv_poly: Vec<FieldElement> = poly.iter().map(|x| (*x * invlen)).collect();
+        // take first element of inv_poly and then the reverse of the rest
+        let mut result = vec![inv_poly[0]];
+        result.extend(inv_poly.iter().skip(1).rev());
+        result
+
+    }
+
+    
 
     //interpolation
     
@@ -187,5 +229,38 @@ mod tests {
         let p = Poly::lagrange_interpolation(&x, &y);
         assert_eq!(p.coeffs, expected_coeffs);
 
+    }
+
+    #[test]
+    fn test_fft() {
+        let mut coeffs = [FieldElement::new(0);8];
+        coeffs[1] = FieldElement::new(1);
+
+        let n = nth_root_of_unity(8);
+        let fft =Poly::fft(&coeffs, &n);
+        let mut arr = [FieldElement::new(0); 256];
+        let len = fft.len();
+        arr[..len].copy_from_slice(&fft); // copy the elements from the vector to the array
+        
+        let expected_coeffs = [FieldElement::new(1),n, n.pow(2), n.pow(3), n.pow(4),n.pow(5),n.pow(6),n.pow(7)];
+        
+        assert_eq!(arr[..len], expected_coeffs);
+    }
+
+    #[test]
+    fn test_inv_fft() {
+
+        let n = nth_root_of_unity(8);
+        let coeffs = [FieldElement::new(1),n, n.pow(2), n.pow(3), n.pow(4),n.pow(5),n.pow(6),n.pow(7)];
+        
+        let inv_fft =Poly::inv_fft(&coeffs, &n);
+        print!("inv_fft: {:?}" , inv_fft);
+        let mut arr = [FieldElement::new(0); 256];
+        let len = inv_fft.len();
+        arr[..len].copy_from_slice(&inv_fft); // copy the elements from the vector to the array
+        
+        let expected_coeffs = [FieldElement::new(0),FieldElement::new(1), FieldElement::new(0), FieldElement::new(0), FieldElement::new(0), FieldElement::new(0), FieldElement::new(0), FieldElement::new(0)];
+        
+        assert_eq!(arr[..len], expected_coeffs);
     }
 }
