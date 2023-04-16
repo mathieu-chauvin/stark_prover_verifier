@@ -28,6 +28,10 @@ pub struct FieldElement {
     value: u64,
 }
 
+fn nth_root_of_unity(n: u64) -> FieldElement {
+    FieldElement::new(7).pow((P - 1) / n)
+}
+
 impl PartialEq for FieldElement {
     fn eq(&self, other: &FieldElement) -> bool {
         self.value == other.value
@@ -59,6 +63,14 @@ impl Mul<FieldElement> for FieldElement {
     }
 }
 
+impl Div<FieldElement> for FieldElement {
+    type Output = FieldElement;
+
+    fn div(self, other: FieldElement) -> FieldElement {
+        self * other.inv()
+    }
+}
+
 impl FieldElement {
     // new creates a new FieldElement from a u64
     pub fn new(value: u64) -> FieldElement {
@@ -68,17 +80,20 @@ impl FieldElement {
     // pow computes the exponentiation of a FieldElement by using the binary exponentiation algorithm
     pub fn pow(&self, exp: u64) -> FieldElement {
         let mut result = FieldElement::new(1);
-        let mut base = self.value;
+        let mut base: u128 = self.value as u128;
         let mut exp = exp;
         while exp > 0 {
             if exp % 2 == 1 {
-                result = result * FieldElement::new(base);
+                result = result * FieldElement::new(base.try_into().unwrap());
             }
             exp = exp >> 1;
-            base = (base * base) % P;
+            base = (base * base) % (P as u128);
         }
-        result
+        result.try_into().unwrap()
     }
+
+
+
     
 
     // inv computes the multiplicative inverse of a FieldElement by using the extended Euclidean algorithm
@@ -225,6 +240,17 @@ mod tests {
         assert_eq!(a*invs[0], FieldElement::new(1));
         assert_eq!(b*invs[1], FieldElement::new(1));
         assert_eq!(c*invs[2], FieldElement::new(1));
+    }
+
+    #[test]
+    fn test_nth_root_of_unity() {
+        // pow 2 to the power of 32
+        let base:u64 = 2;
+        let nth = base.pow(32);
+        let a = nth_root_of_unity(nth);
+
+        //should be equal to 0x185629dcda58878c
+        assert_eq!(a.value, 0x185629dcda58878c);
     }
 
 }
