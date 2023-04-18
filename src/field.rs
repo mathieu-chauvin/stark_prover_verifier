@@ -50,7 +50,7 @@ impl Sub<FieldElement> for FieldElement {
     type Output = FieldElement;
 
     fn sub(self, other: FieldElement) -> FieldElement {
-        FieldElement::new(((self.value as u128) + (P as u128) - (other.value as u128)) as u64)
+        FieldElement::new((((self.value as u128) + (P as u128) - (other.value as u128))%(P as u128)) as u64)
     }
 }
 
@@ -189,6 +189,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_generator() {
+        let g = FieldElement::new(7);
+        assert_eq!(g.pow(P-1), FieldElement::new(1));
+    }
+
+    #[test]
     fn test_add() {
         let a = FieldElement::new(1);
         let b = FieldElement::new(2);
@@ -225,10 +231,24 @@ mod tests {
     }
 
     #[test]
+    fn test_inv_2(){
+        let a = FieldElement::new(P-2);
+        let inv = a.inv();
+        assert_eq!(a*inv, FieldElement::new(1));
+    }
+
+    #[test]
     fn test_pow() {
         let a = FieldElement::new(2);
         let b = 3 as u64;
         assert_eq!(a.pow(b), FieldElement::new(8));
+    }
+
+    #[test]
+    fn test_pow_2() {
+        let a = FieldElement::new(P-3);
+        let b = 3 as u64;
+        assert_eq!(a.pow(b), a*a*a);
     }
 
     #[test]
@@ -251,6 +271,20 @@ mod tests {
 
         //should be equal to 0x185629dcda58878c
         assert_eq!(a.value, 0x185629dcda58878c);
+    }
+
+    #[test]
+    fn test_sub_zero() {
+        let a = FieldElement::new(P-5);
+        let b = FieldElement::new(0);
+        assert_eq!(a-b, FieldElement::new(P-5));
+    }
+
+    #[test]
+    fn test_mul_overflow() {
+        let a = FieldElement::new(P-1);
+        let b = FieldElement::new(P-2);
+        assert_eq!(a*b, FieldElement::new(2));
     }
 
 }

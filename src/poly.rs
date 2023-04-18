@@ -134,9 +134,24 @@ impl Poly {
         let mut power_of_root_of_unity = FieldElement::new(1);
             
         for i in 0..n/2 {
-            let y_times_root = r[i]*(power_of_root_of_unity);
+            let y_times_root = r[i]*power_of_root_of_unity;
             o[i] = l[i]+(y_times_root);
             o[i+n/2] = l[i]-(y_times_root);
+            power_of_root_of_unity = power_of_root_of_unity*(*root_of_unity);
+        }
+        o
+    }
+
+    // Naive FFT function, for test purposes
+    fn naive_fft(vals: &[FieldElement], root_of_unity: &FieldElement) -> Vec<FieldElement> {
+        let n = vals.len();
+        let mut o = vec![FieldElement::new(0); n];
+        let mut power_of_root_of_unity = FieldElement::new(1);
+
+        for i in 0..n {
+            for j in 0..n {
+                o[i] = o[i]+(vals[j]*power_of_root_of_unity.pow(j as u64));
+            }
             power_of_root_of_unity = power_of_root_of_unity*(*root_of_unity);
         }
         o
@@ -148,15 +163,13 @@ impl Poly {
 
         // Inverse FFT
         let invlen = FieldElement::new(vals.len() as u64).inv();
+        let inv_root_of_unity = root_of_unity.inv();
         print!("invlen: {:?}" , invlen);
-        let poly = Self::fft(&vals, &root_of_unity);
+        let poly = Self::fft(&vals, &inv_root_of_unity);
         print!("poly: {:?}" , poly);
         // for each element of poly, multiply by invlen
         let inv_poly: Vec<FieldElement> = poly.iter().map(|x| (*x * invlen)).collect();
-        // take first element of inv_poly and then the reverse of the rest
-        let mut result = vec![inv_poly[0]];
-        result.extend(inv_poly.iter().skip(1).rev());
-        result
+        inv_poly
 
     }
 
@@ -245,6 +258,62 @@ mod tests {
         let expected_coeffs = [FieldElement::new(1),n, n.pow(2), n.pow(3), n.pow(4),n.pow(5),n.pow(6),n.pow(7)];
         
         assert_eq!(arr[..len], expected_coeffs);
+    }
+
+    #[test]
+    fn test_naive_fft() {
+        let mut coeffs = [FieldElement::new(0);8];
+        coeffs[1] = FieldElement::new(1);
+
+        let n = nth_root_of_unity(8);
+        let fft =Poly::naive_fft(&coeffs, &n);
+        let mut arr = [FieldElement::new(0); 256];
+        let len = fft.len();
+        arr[..len].copy_from_slice(&fft); // copy the elements from the vector to the array
+        
+        let expected_coeffs = [FieldElement::new(1),n, n.pow(2), n.pow(3), n.pow(4),n.pow(5),n.pow(6),n.pow(7)];
+        
+        assert_eq!(arr[..len], expected_coeffs);
+    }
+
+
+    #[test]
+    fn test_fft_2() {
+        let mut coeffs = [FieldElement::new(0);8];
+        coeffs[1] = FieldElement::new(1);
+        coeffs[0] = FieldElement::new(P-1);
+
+        let n = nth_root_of_unity(8);
+        let fft =Poly::fft(&coeffs, &n);
+        let mut arr = [FieldElement::new(0); 256];
+        let len = fft.len();
+        arr[..len].copy_from_slice(&fft); // copy the elements from the vector to the array
+        
+        let expected_coeffs = [FieldElement::new(0),n-FieldElement::new(1), n.pow(2)-FieldElement::new(1), n.pow(3)-FieldElement::new(1), n.pow(4)-FieldElement::new(1),n.pow(5)-FieldElement::new(1),n.pow(6)-FieldElement::new(1),n.pow(7)-FieldElement::new(1)];
+        
+        assert_eq!(arr[..len], expected_coeffs);
+    }
+
+    #[test]
+    fn test_naive_and_fft() {
+        let mut coeffs = [FieldElement::new(0);4];
+        coeffs[2] = FieldElement::new(5);
+        //coeffs[1] = FieldElement::new(1);
+        //coeffs[0] = FieldElement::new(11);
+
+
+        let n = nth_root_of_unity(4);
+        let fft =Poly::fft(&coeffs, &n);
+        let mut arr = [FieldElement::new(0); 256];
+        let len = fft.len();
+        arr[..len].copy_from_slice(&fft); // copy the elements from the vector to the array
+
+        let fft2 =Poly::naive_fft(&coeffs, &n);
+        let mut arr2 = [FieldElement::new(0); 256];
+        let len2 = fft2.len();
+        arr2[..len2].copy_from_slice(&fft2); // copy the elements from the vector to the array
+        
+        assert_eq!(arr[..len], arr2[..len2]);
     }
 
     #[test]
