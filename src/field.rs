@@ -1,7 +1,7 @@
 // basic modular arithmetic for field elements
 
 use std::env::temp_dir;
-use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAssign, DivAssign};
+use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAssign, DivAssign, Rem};
 
 use std::hash::{Hash, Hasher};
 
@@ -17,7 +17,7 @@ use std::hash::{Hash, Hasher};
 // 2^64 - 2^32 = 0x10000000000000000 - 0x100000000 = 0xffffffff00000000
 // 2^64 - 2^32 +1 = 0xffffffff00000000 + 1 = 0xffffffff00000001
 
-// generator = 2
+// generator = 7
 
 
 // declare a constant for p
@@ -68,6 +68,15 @@ impl Div<FieldElement> for FieldElement {
 
     fn div(self, other: FieldElement) -> FieldElement {
         self * other.inv()
+    }
+}
+
+impl Rem<FieldElement> for FieldElement {
+    type Output = FieldElement;
+
+    fn rem(self, other: FieldElement) -> FieldElement {
+        //self - (self / other) * other
+        FieldElement::new(self.value % other.value)
     }
 }
 
