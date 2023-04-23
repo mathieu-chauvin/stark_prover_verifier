@@ -14,9 +14,9 @@ use crate::field::nth_root_of_unity;
 // Poly is a polynomial of degree n
 #[derive(Copy, Clone)]
 pub struct Poly {
-    coeffs: [FieldElement; 256],
+    pub coeffs: [FieldElement; 256],
     // type can be coeffs or lagrange
-    lagrange : bool
+    pub lagrange : bool
 
 }
 
@@ -36,11 +36,11 @@ pub struct Poly {
 
 impl Poly {
     
-    fn new(coeffs: [FieldElement; 256]) -> Poly {
+    pub fn new(coeffs: [FieldElement; 256]) -> Poly {
         Poly { coeffs: coeffs, lagrange: false }
     }
 
-    fn add(&self, other: Poly) -> Poly {
+    pub fn add(&self, other: Poly) -> Poly {
         let mut result = [FieldElement::new(0); 256];
         for i in 0..256 {
             result[i] = self.coeffs[i] + other.coeffs[i];
@@ -48,7 +48,7 @@ impl Poly {
         Poly::new(result)
     }
 
-    fn sub(&self, other: Poly) -> Poly {
+    pub fn sub(&self, other: Poly) -> Poly {
         let mut result = [FieldElement::new(0); 256];
         for i in 0..256 {
             result[i] = self.coeffs[i]- other.coeffs[i];
@@ -56,7 +56,7 @@ impl Poly {
         Poly::new(result)
     }
 
-    fn mul(&self, other: FieldElement) -> Poly {
+    pub fn mul(&self, other: FieldElement) -> Poly {
         let mut result = [FieldElement::new(0); 256];
         for i in 0..256 {
             result[i] = self.coeffs[i]*other;
@@ -65,7 +65,7 @@ impl Poly {
         Poly::new(result)
     }
 
-    fn mul_poly(&self, other: Poly) -> Poly {
+    pub fn mul_poly(&self, other: Poly) -> Poly {
         let mut result = [FieldElement::new(0); 256];
         for i in 0..256 {
             for j in 0..256 {
@@ -79,7 +79,7 @@ impl Poly {
     }
 
 
-    fn eval(&self, x: FieldElement) -> FieldElement {
+    pub fn eval(&self, x: FieldElement) -> FieldElement {
         let mut result = FieldElement::new(0);
         for i in 0..256 {
             result = result+(self.coeffs[i]*x.pow(i as u64));
@@ -87,7 +87,7 @@ impl Poly {
         result
     }
 
-    fn lagrange_interpolation(x: &[FieldElement], y:&[FieldElement]) -> Poly {
+    pub fn lagrange_interpolation(x: &[FieldElement], y:&[FieldElement]) -> Poly {
         assert_eq!(x.len(), y.len());
 
         let coeffs = [FieldElement::new(0); 256];
@@ -120,7 +120,7 @@ impl Poly {
     // fast fourier transform
     // https://en.wikipedia.org/wiki/Fast_Fourier_transform
     
-    fn fft(vals: &[FieldElement], root_of_unity: &FieldElement) -> Vec<FieldElement> {
+    pub fn fft(vals: &[FieldElement], root_of_unity: &FieldElement) -> Vec<FieldElement> {
         let n = vals.len();
         if n == 1 {
             return vals.to_vec();
@@ -158,7 +158,7 @@ impl Poly {
     }
 
     // Inverse FFT function
-    fn inv_fft(vals: &[FieldElement], root_of_unity: &FieldElement) -> Vec<FieldElement> {
+    pub fn inv_fft(vals: &[FieldElement], root_of_unity: &FieldElement) -> Vec<FieldElement> {
         let n = vals.len();
 
         // Inverse FFT

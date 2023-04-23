@@ -80,6 +80,14 @@ impl Rem<FieldElement> for FieldElement {
     }
 }
 
+impl Neg for FieldElement {
+    type Output = FieldElement;
+
+    fn neg(self) -> FieldElement {
+        FieldElement::new(P - self.value)
+    }
+}
+
 impl FieldElement {
     // new creates a new FieldElement from a u64
     pub fn new(value: u64) -> FieldElement {
@@ -140,7 +148,7 @@ impl FieldElement {
     }
 
     // find multiples inverses using montgomery batch inversion
-    fn multi_inv(&self, values: &[FieldElement]) -> Vec<FieldElement> {
+    pub fn multi_inv(values: &[FieldElement]) -> Vec<FieldElement> {
         // declare a empty vector to hold the partials
         let mut partials = Vec::new();
         // set the first partial to a
@@ -265,7 +273,7 @@ mod tests {
         let a = FieldElement::new(42);
         let b = FieldElement::new(17);
         let c = FieldElement::new(13);
-        let invs = a.multi_inv(&[a,b,c]);
+        let invs = FieldElement::multi_inv(&[a,b,c]);
         assert_eq!(a*invs[0], FieldElement::new(1));
         assert_eq!(b*invs[1], FieldElement::new(1));
         assert_eq!(c*invs[2], FieldElement::new(1));
