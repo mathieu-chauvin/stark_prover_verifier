@@ -11,7 +11,7 @@ fn hash_sha(x: Vec<u8>) -> Vec<u8> {
 }
 
 // takes a list of leaves and returns a merkle tree of length 2*n
-fn merkelize(L: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+fn merkelize(L: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let mut nodes: Vec<Vec<u8>> = vec![vec![]; L.len() * 2];
     nodes[L.len()..].clone_from_slice(&L);
     for i in (1..L.len()).rev() {
@@ -22,7 +22,7 @@ fn merkelize(L: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     nodes
 }
 
-fn mk_branch(tree: Vec<Vec<u8>>, mut index: usize) -> Vec<Vec<u8>> {
+fn mk_branch(tree: &Vec<Vec<u8>>, mut index: usize) -> Vec<Vec<u8>> {
     index += tree.len() / 2;
     let mut o: Vec<Vec<u8>> = vec![tree[index].clone()];
     while index > 1 {
@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn test_merkelize() {
         let data = vec![b"a".to_vec(),b"b".to_vec(), b"c".to_vec(), b"d".to_vec()];
-        let tree = merkelize(data);
+        let tree = merkelize(&data);
         print!("{:?}", tree);
 
         let expected_root = hash_sha([hash_sha([b"a".to_vec(), b"b".to_vec()].concat().to_vec()), hash_sha([b"c".to_vec(), b"d".to_vec()].concat().to_vec())].concat().to_vec());
@@ -56,6 +56,15 @@ mod tests {
 
         //let expected_root = hash_sha(&hash_sha([&b"a".to_vec(),&b"b".to_vec()].concat()).extend_from_slice(&hash_sha(&b"c".to_vec(), &b"d".to_vec())));
         assert_eq!(tree[1], expected_root);
+    }
+
+    #[test]
+    fn test_mk_branch() {
+        let data = vec![b"a".to_vec(),b"b".to_vec(), b"c".to_vec(), b"d".to_vec()];
+        let tree = merkelize(&data);
+        let branch = mk_branch(&tree, 2);
+        let expected_branch = vec![tree[6].clone(),tree[7].clone(), tree[2].clone()];
+        assert_eq!(branch, expected_branch);
     }
 }
 
