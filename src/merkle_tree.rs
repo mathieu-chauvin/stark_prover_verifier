@@ -6,23 +6,22 @@ use std::hash::{Hash, Hasher};
 
 use sha2::{Digest, Sha256};
 
-fn hash_sha(x: Vec<u8>) -> Vec<u8> {
+pub fn hash_sha(x: Vec<u8>) -> Vec<u8> {
     Sha256::digest(x).to_vec()
 }
 
 // takes a list of leaves and returns a merkle tree of length 2*n
-fn merkelize(L: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+pub fn merkelize(L: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let mut nodes: Vec<Vec<u8>> = vec![vec![]; L.len() * 2];
     nodes[L.len()..].clone_from_slice(&L);
     for i in (1..L.len()).rev() {
-        //nodes[i] = hash_sha(nodes[i * 2].iter().chain(nodes[i * 2 + 1].iter()).cloned().collect::<Vec<u8>>().as_slice());
         //takes nodes at 2*I and 2*I+1 and hashes them together
         nodes[i] = hash_sha(nodes[2 * i].iter().chain(nodes[2 * i + 1].iter()).cloned().collect::<Vec<u8>>());
     }
     nodes
 }
 
-fn mk_branch(tree: &Vec<Vec<u8>>, mut index: usize) -> Vec<Vec<u8>> {
+pub fn mk_branch(tree: &Vec<Vec<u8>>, mut index: usize) -> Vec<Vec<u8>> {
     index += tree.len() / 2;
     let mut o: Vec<Vec<u8>> = vec![tree[index].clone()];
     while index > 1 {

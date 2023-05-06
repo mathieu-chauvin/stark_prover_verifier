@@ -71,6 +71,7 @@ impl Div<FieldElement> for FieldElement {
     }
 }
 
+
 impl Rem<FieldElement> for FieldElement {
     type Output = FieldElement;
 
@@ -92,6 +93,19 @@ impl FieldElement {
     // new creates a new FieldElement from a u64
     pub fn new(value: u64) -> FieldElement {
         FieldElement { value: value % P }
+    }
+
+    pub fn get_power_cycle(r: FieldElement) -> Vec<FieldElement> {
+        let mut o = vec![FieldElement::new(1), r];
+        while *o.last().unwrap() != FieldElement::new(1) {
+            o.push(*o.last().unwrap() * r);
+        }
+        o.pop();
+        o
+    }
+
+    pub fn to_bytes(&self) -> [u8; 8] {
+        self.value.to_be_bytes()
     }
 
     // pow computes the exponentiation of a FieldElement by using the binary exponentiation algorithm
@@ -238,6 +252,12 @@ mod tests {
         let a = FieldElement::new(1);
         let b = FieldElement::new(2);
         assert_eq!(a-b, FieldElement::new(P-1));
+    }
+
+    #[test]
+    fn test_get_power_cycle() {
+        let r = FieldElement::new(2);
+        assert_eq!(*FieldElement::get_power_cycle(r).last().unwrap()*r, FieldElement::new(1));
     }
 
     #[test]

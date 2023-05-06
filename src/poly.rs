@@ -21,19 +21,6 @@ pub struct Poly {
 }
 
 
-
-// implement add, mul
-// implement eval
-// implement div
-
-// implement the Lagrange interpolation algorithm
-// https://en.wikipedia.org/wiki/Lagrange_polynomial
-
-
-
-// implement the FFT algorithm
-// https://en.wikipedia.org/wiki/Fast_Fourier_transform
-
 impl Poly {
     
     pub fn new(coeffs: [FieldElement; 256]) -> Poly {

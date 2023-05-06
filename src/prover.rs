@@ -29,15 +29,6 @@ fn generate_computational_trace(a: &[FieldElement], b: &[FieldElement], steps:u6
 
 }
 
-fn get_power_cycle(r: FieldElement) -> Vec<FieldElement> {
-    let mut o = vec![FieldElement::new(1), r];
-    while *o.last().unwrap() != FieldElement::new(1) {
-        o.push(*o.last().unwrap() * r);
-    }
-    o.pop();
-    o
-}
-
 
 pub fn make_proof_multiset(a: &[FieldElement], b: &[FieldElement], steps:u64){
     assert!(steps <= 2u64.pow(32) / extension_factor);
@@ -129,11 +120,6 @@ mod tests {
         assert_eq!(is_a_power_of_2(7), false);
     }
 
-    #[test]
-    fn test_get_power_cycle() {
-        let r = FieldElement::new(2);
-        assert_eq!(*get_power_cycle(r).last().unwrap()*r, FieldElement::new(1));
-    }
     
     #[test]
     fn test_multiset_computational_trace() {
