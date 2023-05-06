@@ -35,6 +35,18 @@ pub fn mk_branch(tree: &Vec<Vec<u8>>, mut index: usize) -> Vec<Vec<u8>> {
     o
 }
 
+pub fn verify_branch(root: &Vec<u8>, index: usize, branch: &Vec<Vec<u8>>) -> bool {
+    let mut o = branch.first().unwrap().clone();
+    for (i, b) in branch.iter().skip(1).enumerate() {
+        o = if index & (1 << i) == 0 {
+            hash_sha(o.iter().chain(b.iter()).cloned().collect::<Vec<u8>>())
+        } else {
+            hash_sha(b.iter().chain(o.iter()).cloned().collect::<Vec<u8>>())
+        }
+    }
+    o == *root
+}
+
 
 
 // tests
@@ -64,6 +76,16 @@ mod tests {
         let branch = mk_branch(&tree, 2);
         let expected_branch = vec![tree[6].clone(),tree[7].clone(), tree[2].clone()];
         assert_eq!(branch, expected_branch);
+    }
+
+    #[test]
+    fn test_verify_branch() {
+        let data = vec![b"a".to_vec(),b"b".to_vec(), b"c".to_vec(), b"d".to_vec()];
+        let tree = merkelize(&data);
+        let branch = mk_branch(&tree, 2);
+        let expected_branch = vec![tree[6].clone(),tree[7].clone(), tree[2].clone()];
+        assert_eq!(branch, expected_branch);
+        assert_eq!(verify_branch(&tree[1], 2, &branch), true);
     }
 }
 
