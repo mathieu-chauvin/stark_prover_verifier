@@ -2,7 +2,6 @@
 
 use crate::field::FieldElement;
 use crate::field::P;
-use crate::field::nth_root_of_unity;
 
 // implement a polynomial type
 // enum 
@@ -252,7 +251,7 @@ mod tests {
         let mut coeffs = [FieldElement::new(0);8];
         coeffs[1] = FieldElement::new(1);
 
-        let n = nth_root_of_unity(8);
+        let n = FieldElement::nth_root_of_unity(8);
         let fft =Poly::naive_fft(&coeffs, &n);
         let mut arr = [FieldElement::new(0); 256];
         let len = fft.len();
@@ -270,7 +269,7 @@ mod tests {
         coeffs[1] = FieldElement::new(1);
         coeffs[0] = FieldElement::new(P-1);
 
-        let n = nth_root_of_unity(8);
+        let n = FieldElement::nth_root_of_unity(8);
         let fft =Poly::fft(&coeffs, &n);
         let mut arr = [FieldElement::new(0); 256];
         let len = fft.len();
@@ -289,7 +288,7 @@ mod tests {
         //coeffs[0] = FieldElement::new(11);
 
 
-        let n = nth_root_of_unity(4);
+        let n = FieldElement::nth_root_of_unity(4);
         let fft =Poly::fft(&coeffs, &n);
         let mut arr = [FieldElement::new(0); 256];
         let len = fft.len();
@@ -306,7 +305,7 @@ mod tests {
     #[test]
     fn test_inv_fft() {
 
-        let n = nth_root_of_unity(8);
+        let n = FieldElement::nth_root_of_unity(8);
         let coeffs = [FieldElement::new(1),n, n.pow(2), n.pow(3), n.pow(4),n.pow(5),n.pow(6),n.pow(7)];
         
         let inv_fft =Poly::inv_fft(&coeffs, &n);

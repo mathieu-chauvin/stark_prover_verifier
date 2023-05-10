@@ -28,9 +28,6 @@ pub struct FieldElement {
     value: u64,
 }
 
-pub fn nth_root_of_unity(n: u64) -> FieldElement {
-    FieldElement::new(7).pow((P - 1) / n)
-}
 
 impl PartialEq for FieldElement {
     fn eq(&self, other: &FieldElement) -> bool {
@@ -93,6 +90,11 @@ impl FieldElement {
     // new creates a new FieldElement from a u64
     pub fn new(value: u64) -> FieldElement {
         FieldElement { value: value % P }
+    }
+
+
+    pub fn nth_root_of_unity(n: u64) -> FieldElement {
+        FieldElement::new(7).pow((P - 1) / n)
     }
 
     pub fn get_power_cycle(r: FieldElement) -> Vec<FieldElement> {
@@ -304,7 +306,7 @@ mod tests {
         // pow 2 to the power of 32
         let base:u64 = 2;
         let nth = base.pow(32);
-        let a = nth_root_of_unity(nth);
+        let a = FieldElement::nth_root_of_unity(nth);
 
         //should be equal to 0x185629dcda58878c
         assert_eq!(a.value, 0x185629dcda58878c);

@@ -12,10 +12,13 @@ pub fn hash_sha(x: Vec<u8>) -> Vec<u8> {
 
 // takes a list of leaves and returns a merkle tree of length 2*n
 pub fn merkelize(L: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+    println!("begin merkelize");
+    println!("L: {:?}", L);
     let mut nodes: Vec<Vec<u8>> = vec![vec![]; L.len() * 2];
     nodes[L.len()..].clone_from_slice(&L);
     for i in (1..L.len()).rev() {
         //takes nodes at 2*I and 2*I+1 and hashes them together
+        println!("i: {}", i);
         nodes[i] = hash_sha(nodes[2 * i].iter().chain(nodes[2 * i + 1].iter()).cloned().collect::<Vec<u8>>());
     }
     nodes

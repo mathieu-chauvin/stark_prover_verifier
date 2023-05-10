@@ -44,7 +44,7 @@ pub fn make_proof_multiset(a: &[FieldElement], b: &[FieldElement], steps:u64){
     let g1= g2.pow(skips);
 
     // Powers of the higher-order root of unity
-    let xs = get_power_cycle(g2);
+    let xs = FieldElement::get_power_cycle(g2);
     let last_step_position = xs[((steps-1)*extension_factor) as usize];
 
     // Generate the computational trace

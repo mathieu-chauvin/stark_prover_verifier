@@ -16,3 +16,7 @@ path = "src/lib.rs"
 
 [dependencies]
 sha2 = "0.10.6"
+
+[[bin]]
+name = "stark_prover_verifier"
+path = "src/main.rs"

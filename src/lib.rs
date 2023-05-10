@@ -1,10 +1,9 @@
 // Re-export the `field` module
-mod field;
+pub mod field;
 pub use field::*;
 
-mod poly;
-mod prover;
-mod merkle_tree;
-mod fri;
-
-// Any other modules in your crate can go here
+pub mod poly;
+pub mod prover;
+pub mod merkle_tree;
+pub mod fri;
+pub mod utils;
