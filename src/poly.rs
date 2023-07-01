@@ -235,7 +235,7 @@ mod tests {
         let mut coeffs = [FieldElement::new(0);8];
         coeffs[1] = FieldElement::new(1);
 
-        let n = nth_root_of_unity(8);
+        let n = FieldElement::nth_root_of_unity(8);
         let fft =Poly::fft(&coeffs, &n);
         let mut arr = [FieldElement::new(0); 256];
         let len = fft.len();

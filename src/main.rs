@@ -1,6 +1,7 @@
 
 use stark_prover_verifier::field::FieldElement;
-use stark_prover_verifier::fri::prove_low_degree;
+use stark_prover_verifier::fri::{prove_low_degree,verify_low_degree_proof};
+use stark_prover_verifier::merkle_tree::merkelize;
 
 pub fn main() {
     let values = vec![
@@ -42,7 +43,12 @@ pub fn main() {
 
         println!("Began proving");
 
-        let proof = prove_low_degree(values, root_of_unity, 32, 0);
+        let merkle = merkelize(&values.iter().map(|x| x.to_bytes().to_vec()).collect::<Vec<_>>());
+
+        let proof = prove_low_degree(values, root_of_unity, merkle[1].clone(), 32, 7);
 
         println!("proof: {:?}", proof);
+
+        assert!(verify_low_degree_proof(&merkle[1], &root_of_unity, &proof, 12, 7));
+
 }
