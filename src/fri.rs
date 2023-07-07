@@ -4,6 +4,7 @@ use crate::field::{FieldElement, P};
 use crate::merkle_tree::{merkelize,mk_branch, verify_branch};
 use crate::poly::Poly;
 use crate::utils::{get_pseudorandom_indices};
+use core::cmp::min;
 
 #[derive(Debug)]
 pub struct FRIComponent {
@@ -69,7 +70,7 @@ pub fn prove_low_degree(
     let mut rng_merkle: [u8; 8] = [0; 8];
     rng_merkle.copy_from_slice(&merkle_root[0..8]);
 
-    let special_x = FieldElement::new(u64::from_be_bytes(rng_merkle));
+    let special_x: FieldElement = FieldElement::new(u64::from_be_bytes(rng_merkle));
 
     // construct column by successive evaluations of rows at special_x
     let column = x_polys.iter().map(|p| p.eval(special_x)).collect::<Vec<_>>();
@@ -116,6 +117,13 @@ pub fn prove_low_degree(
     proof
 }
 
+pub fn get_branch_value(
+    branch: &Vec<Vec<u8>>, 
+) -> Vec<u8> {
+    let value = branch[0].clone();
+    value
+}
+
  
 pub fn verify_low_degree_proof(
     merkle_root: &Vec<u8>, 
@@ -127,7 +135,7 @@ pub fn verify_low_degree_proof(
 
     let mut root1 = merkle_root.clone();
 
-    let modulus =FieldElement::new(P);
+    //let modulus =FieldElement::new(P);
 
     // test 
     let mut testval = root_of_unity.clone();
@@ -137,7 +145,7 @@ pub fn verify_low_degree_proof(
         testval = testval * testval;
     }
 
-    let mut root = root_of_unity.clone();
+    let mut root_of_unity = root_of_unity.clone();
     let mut maxdeg = maxdeg_plus_1.clone();
 
     let quartic_roots_of_unity = vec![
@@ -181,6 +189,7 @@ pub fn verify_low_degree_proof(
                 return false;
             }
         }
+        let poly_values = prf_component.positions_branches.iter().map(|y| get_branch_value(&y)).collect::<Vec<_>>();
 
         for i in 0..ys.len() {
             if !verify_branch(&root2, ys[i] as usize, &prf_component.ys_branches[i]) {
@@ -188,50 +197,75 @@ pub fn verify_low_degree_proof(
             }
         }
 
-        /*for i in 0..ys.len(){
+        let column_values = prf_component.ys_branches.iter().map(|y| get_branch_value(&y)).collect::<Vec<_>>();
+
+        for i in 0..ys.len(){
             //get x coordinates
+            // we have 4 x coordinates for each y coordinate
+            let y = ys[i];
+            let x1 = root_of_unity.pow(y);
+            let xcoord = (0..4).map(|j| (quartic_roots_of_unity[j] * x1)).collect::<Vec<_>>();
+           
+            let row = poly_values[i * 4..(i + 1) * 4]
+                .iter()
+                .map(|x| FieldElement::new(u64::from_be_bytes(x[..8].try_into().unwrap())))
+                .collect::<Vec<_>>();
+           
+            //TODO : create a field element from bytes function
+            let columnval = FieldElement::new(u64::from_be_bytes(column_values[i][..8].try_into().unwrap()));
+            
+            // do lagrange interpolation
+            let poly = Poly::lagrange_interpolation(&xcoord, &row);
 
+            // check if the point from the column belongs to the polynomial
+            let point = poly.eval(special_x);
+            if point != columnval {
+                return false;
+            }
 
-        }*/
+        }
 
-       
-        // Update constants to check the next proof
+        // update root1 and root_of_unity
         root1 = root2.clone();
-        root= root.pow(4);
+        root_of_unity = root_of_unity.pow(4).clone();
         maxdeg /= 4;
         deg_root /= 4;
+    
     }
     
     // Verify the direct components of the proof
-    /*let data: Vec<u64> = proof.last().unwrap().iter().map(|x| {
-        u64::from_be_bytes(x[..8].try_into().unwrap())
-    }).collect();*/
-
     let values = proof.last().unwrap().values.clone();
     println!("Verifying degree <= {}", maxdeg_plus_1);
     assert!(maxdeg_plus_1 <= 16);
     
     // Check the Merkle root matches up
-    /*let mtree = merkelize(&data);
-    assert_eq!(&mtree[1], merkle_root);
+    let mtree = merkelize(&values);
+    assert_eq!(mtree[1], root1);
     
     // Check the degree of the data
-    let powers = get_power_cycle(&root_of_unity, modulus);
-    let pts: Vec<usize> = if exclude_multiples_of != 0 {
-        (0..data.len()).filter(|&x| x % exclude_multiples_of != 0).collect()
-    } else {
-        (0..data.len()).collect()
-    };
+    //TODO : exclude_multiples_of, avoid multiples of the generator
     
-    let poly = f.lagrange_interp(
-        pts.iter().take(maxdeg_plus_1).map(|&x| &powers[x]),
-        pts.iter().take(maxdeg_plus_1).map(|&x| data[x]),
+    let powers = FieldElement::get_power_cycle(root_of_unity);
+    let values_full = values.iter().map(|x| FieldElement::new(u64::from_be_bytes(x[..8].try_into().unwrap()))).collect::<Vec<_>>();
+    let max_length = min(maxdeg_plus_1, values_full.len());
+    let values_short = values_full[..max_length].to_vec();
+
+    let poly_short = Poly::lagrange_interpolation(
+        &powers[..max_length],
+        &values_short,
     );
-    
-    for &x in pts.iter().skip(maxdeg_plus_1) {
-        assert_eq!(f.eval_poly_at(&poly, &powers[x]), data[x]);
+
+    let poly_full = Poly::lagrange_interpolation(
+        &powers,
+        &values_full,
+    );
+
+    for i in 0..values.len() {
+        // if both are equal, poly_full is defined by maxdeg_plus_1 points
+        assert_eq!(poly_full.eval(powers[i]), poly_short.eval(powers[i]));
     }
-    */
+    
+    
     println!("FRI proof verified");
     true
 }    
